@@ -8,7 +8,10 @@ import java.sql.SQLException;
 import java.util.Properties;
 
 public class Util {
-    public static Connection getConnection() throws SQLException {
+    private Util() {
+    }
+
+    public static Connection getConnection() {
         String dbUrl;
         String dbUsername;
         String dbPassword;
@@ -24,13 +27,16 @@ public class Util {
             throw new RuntimeException(e);
         }
 
-        Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword);
+        try (Connection connection = DriverManager.getConnection(dbUrl, dbUsername, dbPassword)) {
+            if (!connection.isClosed()) {
+                return connection;
+            } else {
+                throw new SQLException("Failed to establish a database connection.");
+            }
 
-        if (!connection.isClosed()) {
-            return connection;
-        } else {
-            throw new SQLException("Failed to establish a database connection.");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-
     }
+
 }
